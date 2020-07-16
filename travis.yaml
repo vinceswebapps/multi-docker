@@ -1,0 +1,23 @@
+sudo: required
+services:
+    - docker
+
+before_install:
+    -docker build -t vinceswebapps/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true vinceswebapps/react-test npm test
+
+after_success:
+    - docker build -t vinceswebapps/multi-client ./client
+    - docker build -t vinceswebapps/multi-nginx ./nginx
+    - docker build -t vinceswebapps/multi-server ./server
+    - docker build -t vinceswebapps/multi-worker ./worker
+
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+    - docker push vinceswebapps/multi-client 
+    - docker push vinceswebapps/multi-nginx
+    - docker push vinceswebapps/multi-server 
+    - docker push vinceswebapps/multi-worker
+     
